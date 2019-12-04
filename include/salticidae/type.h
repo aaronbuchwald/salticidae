@@ -37,7 +37,7 @@
 #include <ios>
 #include <functional>
 #include <mutex>
-#include "endian.h"
+#include "salticidae/endian.h"
 
 namespace salticidae {
 
