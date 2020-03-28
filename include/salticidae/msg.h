@@ -25,9 +25,9 @@
 #ifndef _SALTICIDAE_MSG_H
 #define _SALTICIDAE_MSG_H
 
-#include "salticidae/type.h"
-#include "salticidae/stream.h"
-#include "salticidae/netaddr.h"
+#include "type.h"
+#include "stream.h"
+#include "netaddr.h"
 
 #ifdef __cplusplus
 

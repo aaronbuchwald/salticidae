@@ -40,13 +40,13 @@
 #include <thread>
 #include <fcntl.h>
 
-#include "salticidae/type.h"
-#include "salticidae/ref.h"
-#include "salticidae/event.h"
-#include "salticidae/util.h"
-#include "salticidae/netaddr.h"
-#include "salticidae/msg.h"
-#include "salticidae/buffer.h"
+#include "type.h"
+#include "ref.h"
+#include "event.h"
+#include "util.h"
+#include "netaddr.h"
+#include "msg.h"
+#include "buffer.h"
 
 namespace salticidae {
 
@@ -64,6 +64,8 @@ class ConnPool {
     /** The type of callback invoked when an error occured (during async execution). */
     using error_callback_t = std::function<void(const std::exception_ptr, bool, int32_t)>;
     /** Abstraction for a bi-directional connection. */
+
+    const X509 *get_peer_cert() const { return tls_cert.get(); }
     class Conn {
         friend ConnPool;
         public:

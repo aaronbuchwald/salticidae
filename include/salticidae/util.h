@@ -28,7 +28,7 @@
 #include <getopt.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include "salticidae/config.h"
+#include "config.h"
 
 typedef struct SalticidaeCError {
     int code;
@@ -42,6 +42,8 @@ extern "C" {
 SalticidaeCError salticidae_cerror_normal();
 SalticidaeCError salticidae_cerror_unknown();
 const char *salticidae_strerror(int code);
+const char *salticidae_message_from_error(const SalticidaeCError *err);
+int salticidae_error_code(const SalticidaeCError *err);
 
 #define SALTICIDAE_CERROR_TRY(cerror) try {  (*(cerror)) = salticidae_cerror_normal();
 #define SALTICIDAE_CERROR_CATCH(cerror) \
@@ -63,7 +65,7 @@ const char *salticidae_strerror(int code);
 #include <vector>
 #include <unordered_map>
 #include <functional>
-#include "salticidae/ref.h"
+#include "ref.h"
 
 namespace salticidae {
 
@@ -211,7 +213,7 @@ extern Logger logger;
 
 #ifdef SALTICIDAE_DEBUG_LOG
 #define SALTICIDAE_NORMAL_LOG
-#define SALTICIDAE_ENABLE_LOG_DEBUG
+//#define SALTICIDAE_ENABLE_LOG_DEBUG
 #endif
 
 #ifdef SALTICIDAE_NORMAL_LOG

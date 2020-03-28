@@ -1,6 +1,6 @@
-#include "salticidae/config.h"
+#include "../include/salticidae/config.h"
 #ifdef SALTICIDAE_CBINDINGS
-#include "salticidae/netaddr.h"
+#include "../include/salticidae/netaddr.h"
 
 using namespace salticidae;
 
@@ -44,6 +44,8 @@ bool netaddr_is_null(const netaddr_t *self) { return self->is_null(); }
 uint32_t netaddr_get_ip(const netaddr_t *self) { return self->ip; }
 
 uint16_t netaddr_get_port(const netaddr_t *self) { return self->port; }
+
+uint16_t netaddr_get_port_original(const netaddr_t *self) { return htons(self->port); }
 
 netaddr_array_t *netaddr_array_new() { return new netaddr_array_t(); }
 netaddr_array_t *netaddr_array_new_from_addrs(const netaddr_t * const *addrs, size_t naddrs) {

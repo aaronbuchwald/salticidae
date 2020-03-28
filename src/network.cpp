@@ -1,6 +1,6 @@
-#include "salticidae/config.h"
+#include "../include/salticidae/config.h"
 #ifdef SALTICIDAE_CBINDINGS
-#include "salticidae/network.h"
+#include "../include/salticidae/network.h"
 
 using namespace salticidae;
 
@@ -194,6 +194,12 @@ peerid_t *peerid_new_copied_from_uint256(const uint256_t *rawid) {
     return new peerid_t(*rawid);
 }
 
+const uint8_t *peerid160_new_from_x509_as_uint8(const x509_t *cert) {
+    auto ripemd_data = (uint8_t *)malloc(RIPEMD_BYTE_NUM);
+    id_to_address160(peerid_as_uint8_t(new peerid_t(*cert)), ripemd_data);
+    return ripemd_data;
+}
+
 peerid_array_t *peerid_array_new() { return new peerid_array_t(); }
 peerid_array_t *peerid_array_new_from_peers(const peerid_t * const *peers, size_t npeers) {
     auto res = new peerid_array_t();
@@ -204,6 +210,29 @@ peerid_array_t *peerid_array_new_from_peers(const peerid_t * const *peers, size_
 }
 
 const uint256_t *peerid_as_uint256(const peerid_t *self) { return self; }
+
+peerid_t *peerid_from_peernetwork(peernetwork_t *self) {
+    const x509_t *cert = self->get_peer_cert();
+    return new peerid_t(*cert);
+}
+
+const uint8_t *peerid_as_uint8_t(const peerid_t *self) {
+    datastream_t *stream = datastream_new();
+    uint256_serialize(peerid_as_uint256(self), stream);
+    return datastream_data(stream);
+}
+
+const uint8_t *peerid160_as_uint8_t(const peerid_t *self) {
+    auto ripemd_data = (uint8_t *)malloc(RIPEMD_BYTE_NUM);
+    id_to_address160(peerid_as_uint8_t(self), ripemd_data);
+    return (const uint8_t *) ripemd_data;
+}
+
+uint8_t *peerid160_from_peernetwork_as_uint8(peernetwork_t *self) {
+    auto ripemd_data = (uint8_t *)malloc(RIPEMD_BYTE_NUM);
+    id_to_address160(peerid_as_uint8_t(new peerid_t(*self->get_peer_cert())), ripemd_data);
+    return ripemd_data;
+}
 
 void peerid_array_free(const peerid_array_t *self) { delete self; }
 
@@ -238,6 +267,10 @@ void peernetwork_free(const peernetwork_t *self) { delete self; }
 
 int32_t peernetwork_add_peer(peernetwork_t *self, const peerid_t *peer) {
     return self->add_peer(*peer);
+}
+
+void peernetwork_replace_peerid(peernetwork_t *self, const peerid_t *old_peerid, const peerid_t *new_peerid) {
+    self->update_peerid(*old_peerid, *new_peerid);
 }
 
 int32_t peernetwork_del_peer(peernetwork_t *self, const peerid_t *peer) {
@@ -289,6 +322,10 @@ netaddr_t *peernetwork_conn_get_peer_addr(const peernetwork_conn_t *self) {
 
 peerid_t *peernetwork_conn_get_peer_id(const peernetwork_conn_t *self) {
     return new peerid_t((*self)->get_peer_id());
+}
+
+uint8_t *peernetwork_conn_get_peer_id160(const peernetwork_conn_t *self) {
+    return (*self)->get_peer_id160();
 }
 
 void peernetwork_conn_free(const peernetwork_conn_t *self) { delete self; }

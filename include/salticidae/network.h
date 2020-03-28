@@ -25,11 +25,11 @@
 #ifndef _SALTICIDAE_NETWORK_H
 #define _SALTICIDAE_NETWORK_H
 
-#include "salticidae/event.h"
-#include "salticidae/crypto.h"
-#include "salticidae/netaddr.h"
-#include "salticidae/msg.h"
-#include "salticidae/conn.h"
+#include "event.h"
+#include "crypto.h"
+#include "netaddr.h"
+#include "msg.h"
+#include "conn.h"
 
 #ifdef __cplusplus
 #include <unordered_set>
@@ -380,6 +380,10 @@ class PeerNetwork: public MsgNetwork<OpcodeType> {
             return ret;
         }
 
+        uint8_t *get_peer_id160() {
+            return peer->id160;
+        }
+
         PeerNetwork *get_net() {
             return static_cast<PeerNetwork *>(ConnPool::Conn::get_pool());
         }
@@ -393,6 +397,7 @@ class PeerNetwork: public MsgNetwork<OpcodeType> {
 
     struct Peer {
         PeerId id;
+        uint8_t *id160;
         NetAddr addr; /** remote address (if set) */
         uint32_t nonce;
         conn_t conn;
@@ -421,6 +426,7 @@ class PeerNetwork: public MsgNetwork<OpcodeType> {
 
         Peer(const PeerId &pid, const PeerNetwork *pn):
             id(pid),
+            id160(Peer::set_id160(id)),
             nonce(passive_nonce),
             id_hex(get_hex10(id)),
             retry_delay(0), ntry(0), cur_ntry(0),
@@ -435,6 +441,7 @@ class PeerNetwork: public MsgNetwork<OpcodeType> {
         void reset_ping_timer();
         void send_ping();
         void ping_timer(TimerEvent &);
+        uint8_t *set_id160(const PeerId& id);
         void clear_all_events() {
             if (ev_ping_timer)
                 ev_ping_timer.del();
@@ -602,6 +609,8 @@ class PeerNetwork: public MsgNetwork<OpcodeType> {
 
     /* register a peer as known */
     int32_t add_peer(const PeerId &peer);
+    /* update the peer id of a peer */
+    int32_t update_peerid(const PeerId &old_pid, const PeerId &new_pid);
     /* unregister the peer */
     int32_t del_peer(const PeerId &peer);
     /* set the peer's public IP */
@@ -853,6 +862,17 @@ void PeerNetwork<O, _, __>::Peer::reset_ping_timer() {
     assert(ev_ping_timer);
     ev_ping_timer.del();
     ev_ping_timer.add(gen_rand_timeout(ping_period));
+}
+
+template<typename O, O _, O __>
+uint8_t *PeerNetwork<O, _, __>::Peer::set_id160(const PeerId& peer_id) {
+    if (!peer_id.is_null()) {
+        auto stream = new DataStream();
+        peer_id.serialize(*stream);
+        auto ripemd_data = (uint8_t *)malloc(RIPEMD_BYTE_NUM);
+        id_to_address160(stream->data(), ripemd_data);
+        return ripemd_data;
+    }
 }
 
 template<typename O, O _, O __>
@@ -1137,6 +1157,25 @@ int32_t PeerNetwork<O, _, __>::add_peer(const PeerId &pid) {
             p->conn = conn;
             p->state = Peer::State::DISCONNECTED;
             known_peers.insert(std::make_pair(pid, p));
+        } catch (const PeerNetworkError &) {
+            this->recoverable_error(std::current_exception(), id);
+        } catch (...) { this->disp_error_cb(std::current_exception()); }
+    });
+    return id;
+}
+
+template<typename O, O _, O __>
+int32_t PeerNetwork<O, _, __>::update_peerid(const PeerId &old_pid, const PeerId &new_pid) {
+    auto id = this->gen_async_id();
+    this->disp_tcall->async_call([this, old_pid, new_pid, id](ThreadCall::Handle &) {
+        try {
+            pinfo_ulock_t _g(known_peers_lock);
+            auto it = known_peers.find(old_pid);
+            if (it == known_peers.end())
+                throw PeerNetworkError(SALTI_ERROR_PEER_NOT_EXIST);
+            auto p = it->second.get();
+            known_peers.erase(it);
+            known_peers.insert(std::make_pair(new_pid, p));
         } catch (const PeerNetworkError &) {
             this->recoverable_error(std::current_exception(), id);
         } catch (...) { this->disp_error_cb(std::current_exception()); }
@@ -1481,7 +1520,9 @@ const x509_t *msgnetwork_conn_get_peer_cert(const msgnetwork_conn_t *conn);
 bool msgnetwork_conn_is_terminated(const msgnetwork_conn_t *conn);
 
 /* PeerNetwork */
-
+const uint256_t *peerid_as_uint256(const peerid_t *);
+const uint8_t *peerid_as_uint8_t(const peerid_t *self);
+const uint8_t *peerid160_as_uint8_t(const peerid_t *self);
 void peerid_free(const peerid_t *self);
 peerid_t *peerid_new_from_netaddr(const netaddr_t *addr);
 peerid_t *peerid_new_from_x509(const x509_t *cert);
@@ -1489,8 +1530,13 @@ peerid_t *peerid_new_moved_from_uint256(uint256_t *_moved_rawid);
 peerid_t *peerid_new_copied_from_uint256(const uint256_t *rawid);
 peerid_array_t *peerid_array_new();
 peerid_array_t *peerid_array_new_from_peers(const peerid_t * const *peers, size_t npeers);
-const uint256_t *peerid_as_uint256(const peerid_t *);
 void peerid_array_free(const peerid_array_t *self);
+uint8_t *peernetwork_conn_get_peer_id160(const peernetwork_conn_t *self);
+peerid_t *peernetwork_conn_get_peer_id(const peernetwork_conn_t *self);
+peerid_t *peerid_from_peernetwork(peernetwork_t *self);
+uint8_t *peerid160_from_peernetwork_as_uint8(peernetwork_t *self);
+
+const uint8_t *peerid160_new_from_x509_as_uint8(const x509_t *cert);
 
 peernetwork_config_t *peernetwork_config_new();
 void peernetwork_config_free(const peernetwork_config_t *self);
@@ -1502,6 +1548,7 @@ msgnetwork_config_t *peernetwork_config_as_msgnetwork_config(peernetwork_config_
 peernetwork_t *peernetwork_new(const eventcontext_t *ec, const peernetwork_config_t *config, SalticidaeCError *err);
 void peernetwork_free(const peernetwork_t *self);
 int32_t peernetwork_add_peer(peernetwork_t *self, const peerid_t *peer);
+void peernetwork_replace_peerid(peernetwork_t *self, const peerid_t *old_peerid, const peerid_t *new_peerid);
 int32_t peernetwork_del_peer(peernetwork_t *self, const peerid_t *peer);
 int32_t peernetwork_conn_peer(peernetwork_t *self, const peerid_t *peer, int32_t ntry, double retry_delay);
 bool peernetwork_has_peer(const peernetwork_t *self, const peerid_t *peer);
@@ -1513,7 +1560,6 @@ msgnetwork_conn_t *msgnetwork_conn_new_from_peernetwork_conn(const peernetwork_c
 peernetwork_conn_t *peernetwork_conn_new_from_msgnetwork_conn_unsafe(const msgnetwork_conn_t *conn);
 peernetwork_conn_t *peernetwork_conn_copy(const peernetwork_conn_t *self);
 netaddr_t *peernetwork_conn_get_peer_addr(const peernetwork_conn_t *self);
-peerid_t *peernetwork_conn_get_peer_id(const peernetwork_conn_t *self);
 void peernetwork_conn_free(const peernetwork_conn_t *self);
 bool peernetwork_send_msg(peernetwork_t *self, const msg_t * msg, const peerid_t *peer);
 int32_t peernetwork_send_msg_deferred_by_move(peernetwork_t *self, msg_t * _moved_msg, const peerid_t *peer);

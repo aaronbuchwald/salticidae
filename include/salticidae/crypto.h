@@ -25,13 +25,16 @@
 #ifndef _SALTICIDAE_CRYPTO_H
 #define _SALTICIDAE_CRYPTO_H
 
-#include "salticidae/type.h"
-#include "salticidae/util.h"
+#include "type.h"
+#include "util.h"
 
 #ifdef __cplusplus
 #include <openssl/sha.h>
 #include <openssl/ssl.h>
 #include <openssl/bn.h>
+#include <openssl/ripemd.h>
+
+const int RIPEMD_BYTE_NUM = 20;
 
 namespace salticidae {
 
@@ -62,6 +65,40 @@ class SHA256 {
 
     void _digest(bytearray_t &md) {
         if (!SHA256_Final(&*md.begin(), &ctx))
+            throw std::runtime_error("openssl SHA256 error");
+    }
+
+    void digest(bytearray_t &md) {
+        md.resize(32);
+        _digest(md);
+    }
+
+    bytearray_t digest() {
+        bytearray_t md(32);
+        _digest(md);
+        return md;
+    }
+};
+
+class RIPEMD {
+
+    RIPEMD160_CTX ctx;
+
+    public:
+    RIPEMD() { reset(); }
+
+    void reset() {
+        if (!RIPEMD160_Init(&ctx))
+            throw std::runtime_error("openssl RIPEMD init error");
+    }
+
+    void update(const uint8_t *ptr, size_t length) {
+        if (!RIPEMD160_Update(&ctx, ptr, length))
+            throw std::runtime_error("openssl SHA256 update error");
+    }
+
+    void _digest(bytearray_t &md) {
+        if (!RIPEMD160_Final(&*md.begin(), &ctx))
             throw std::runtime_error("openssl SHA256 error");
     }
 
@@ -447,6 +484,9 @@ pkey_t *pkey_new_privkey_from_der(const bytearray_t *der, SalticidaeCError *err)
 void pkey_free(const pkey_t *self);
 bytearray_t *pkey_get_pubkey_der(const pkey_t *self);
 bytearray_t *pkey_get_privkey_der(const pkey_t *self);
+
+
+void id_to_address160(const uint8_t *sha_digest, uint8_t *ripemd_digest);
 
 #ifdef __cplusplus
 }

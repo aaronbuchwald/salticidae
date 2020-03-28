@@ -26,9 +26,9 @@
 #define _SALTICIDAE_STREAM_H
 
 #ifdef __cplusplus
-#include "salticidae/type.h"
-#include "salticidae/ref.h"
-#include "salticidae/crypto.h"
+#include "type.h"
+#include "ref.h"
+#include "crypto.h"
 
 namespace salticidae {
 

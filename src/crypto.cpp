@@ -1,6 +1,6 @@
-#include "salticidae/config.h"
+#include "../include/salticidae/config.h"
 #ifdef SALTICIDAE_CBINDINGS
-#include "salticidae/crypto.h"
+#include "../include/salticidae/crypto.h"
 
 using namespace salticidae;
 
@@ -60,6 +60,16 @@ bytearray_t *pkey_get_pubkey_der(const pkey_t *self) {
 
 bytearray_t *pkey_get_privkey_der(const pkey_t *self) {
     return new bytearray_t(self->get_privkey_der());
+}
+
+void id_to_address160(const uint8_t *sha_digest, uint8_t *ripemd_digest) {
+    class RIPEMD d;
+    d.update(sha_digest, 32);
+    bytearray_t digest = d.digest();
+    uint8_t *digdata = digest.data();
+    for (int i=0; i<22; i++) {
+        ripemd_digest[i] = digdata[i];
+    }
 }
 
 }

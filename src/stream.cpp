@@ -1,6 +1,6 @@
-#include "salticidae/config.h"
+#include "../include/salticidae/config.h"
 #ifdef SALTICIDAE_CBINDINGS
-#include "salticidae/stream.h"
+#include "../include/salticidae/stream.h"
 
 extern "C" {
 

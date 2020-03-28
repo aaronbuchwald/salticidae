@@ -30,7 +30,7 @@
 #include <cmath>
 #include <sys/time.h>
 
-#include "salticidae/util.h"
+#include "../include/salticidae/util.h"
 
 namespace salticidae {
 
@@ -97,6 +97,14 @@ const char *salticidae_strerror(int code) {
         code >= (int)(sizeof(SALTICIDAE_ERROR_STRINGS) / sizeof(const char *)))
         return "invalid";
     return SALTICIDAE_ERROR_STRINGS[code];
+}
+
+const char *salticidae_message_from_error(const SalticidaeCError *err) {
+    return salticidae_strerror(err->code);
+}
+
+int salticidae_error_code(const SalticidaeCError *err) {
+    return err->code;
 }
 
 }

@@ -41,7 +41,7 @@
 #include "endian.h"
 #endif
 
-#include "salticidae/endian.h"
+#include "endian.h"
 
 namespace salticidae {
 

@@ -30,10 +30,10 @@
 #include <unistd.h>
 #include <uv.h>
 
-#include "salticidae/type.h"
-#include "salticidae/queue.h"
-#include "salticidae/util.h"
-#include "salticidae/ref.h"
+#include "type.h"
+#include "queue.h"
+#include "util.h"
+#include "ref.h"
 
 namespace salticidae {
 

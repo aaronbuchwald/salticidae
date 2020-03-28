@@ -29,7 +29,8 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 find_package(Libuv 1.10.0 REQUIRED)
 find_package(OpenSSL 1.1.0 REQUIRED)
 
-include_directories(include)
+include_directories(include /usr/local/include)
+
 add_library(salticidae
     OBJECT
     src/type.cpp
@@ -55,7 +56,7 @@ set_target_properties(salticidae_static PROPERTIES OUTPUT_NAME "salticidae")
 target_link_libraries(salticidae_static uv crypto ssl pthread)
 install(TARGETS salticidae_static DESTINATION lib)
 
-option(BUILD_TEST "build test binaries." OFF)
+option(BUILD_TEST "build test binaries." ON)
 if(BUILD_TEST)
     add_subdirectory(test)
 endif()
@@ -64,7 +65,7 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE "Release")
 endif()
 
-option(SALTICIDAE_DEBUG_LOG "enable debug log" OFF)
+option(SALTICIDAE_DEBUG_LOG "enable debug log" ON)
 option(SALTICIDAE_NORMAL_LOG "enable regular log" ON)
 option(SALTICIDAE_MSG_STAT "enable message statistics" ON)
 option(SALTICIDAE_NOCHECK "disable the sanity check" OFF)

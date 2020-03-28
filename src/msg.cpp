@@ -1,6 +1,6 @@
-#include "salticidae/config.h"
+#include "../include/salticidae/config.h"
 #ifdef SALTICIDAE_CBINDINGS
-#include "salticidae/msg.h"
+#include "../include/salticidae/msg.h"
 
 extern "C" {
 

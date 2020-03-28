@@ -30,8 +30,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "salticidae/util.h"
-#include "salticidae/conn.h"
+#include "../include/salticidae/util.h"
+#include "../include/salticidae/conn.h"
 
 #if !defined(SOL_TCP) && defined(IPPROTO_TCP)
 #define SOL_TCP IPPROTO_TCP

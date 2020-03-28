@@ -1,6 +1,6 @@
-#include "salticidae/config.h"
+#include "../include/salticidae/config.h"
 #ifdef SALTICIDAE_CBINDINGS
-#include "salticidae/event.h"
+#include "../include/salticidae/event.h"
 
 #if defined(__linux__)
 const uint64_t salticidae::NotifyFd::dummy = 1;

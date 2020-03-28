@@ -25,8 +25,8 @@
 #ifndef _SALTICIDAE_NETADDR_H
 #define _SALTICIDAE_NETADDR_H
 
-#include "salticidae/util.h"
-#include "salticidae/stream.h"
+#include "util.h"
+#include "stream.h"
 
 #ifdef __cplusplus
 #include <string>
@@ -141,6 +141,7 @@ void netaddr_free(const netaddr_t *self);
 netaddr_t *netaddr_new_from_ip_port(uint32_t ip, uint16_t port, SalticidaeCError *err);
 netaddr_t *netaddr_new_from_sip_port(const char *ip, uint16_t port, SalticidaeCError *err);
 netaddr_t *netaddr_new_from_sipport(const char *ip_port_addr, SalticidaeCError *err);
+uint16_t netaddr_get_port_original(const netaddr_t *self);
 netaddr_t *netaddr_copy(const netaddr_t *self);
 bool netaddr_is_eq(const netaddr_t *a, const netaddr_t *b);
 bool netaddr_is_null(const netaddr_t *self);
